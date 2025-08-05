@@ -1,17 +1,7 @@
-### todo:
-# move simdata to json files
-# add generation of departures too
-# customizable arrivals (intervals, directions, destinations)
-# customizable departures (directions)
-# prepare ~40 arrivals and departures from real life data
-# add EPKK/EPKT support
-
-
 import json
 
-from simdata import pseudopilot_data, airport_alt, runway_data, holding_data, controller_data, \
-                    inbound_spawns, requested_altitude_departures, requested_altitude_arrivals, \
-                    initial_pseudopilot, arrivals_star_waypoints
+from simdata import inbound_spawns, requested_altitude_departures, requested_altitude_arrivals, \
+                    arrivals_star_waypoints
 
 from defaults import DEFAULT_HDG, DEFAULT_SPAWN, DEFAULT_TAXI_SPEED, DEFAULT_TAXIWAY_USAGE, \
                      DEFAULT_OBJECT_EXTENT, DEFAULT_REQ_ALT_DEPARTURE, DEFAULT_REQ_ALT_ARRIVAL, \
@@ -125,7 +115,7 @@ def generate_single_flight(flight_data, pseudopilot_data, initial_pseudopilot, s
 
     return flight
 
-def generate_flights_from_json(path_flights_file):
+def generate_flights_from_json(path_flights_file, pseudopilot_data, initial_pseudopilot):
     with open(path_flights_file, 'r', encoding='utf-8') as flights_file:
         all_flights_data = json.load(flights_file)
 
@@ -143,10 +133,15 @@ def generate_flights_from_json(path_flights_file):
 
     return flights
 
-def make_test_scenario(path_flights_file, runway_data, holding_data, controller_data, pseudopilot_data):
-    runways, holdings, controllers = generate_runways(runway_data), generate_holdings(holding_data), generate_controllers(controller_data, pseudopilot_data)
-    flight = '\n'.join(generate_flights_from_json(path_flights_file))
-    return SCENARIO_TEMPLATE.format(pseudopilot_data, airport_alt, runways, holdings, controllers, flight)
+def generate_scenario(path_flights_file, simulation_data_path):
+    sim_data = import_simdata(simulation_data_path)
+
+    runways = generate_runways(sim_data['runway_data'])
+    holdings = generate_holdings(sim_data['holding_data'])
+    controllers = generate_controllers(sim_data['controller_data'], sim_data['pseudopilot_data'])
+    flight = '\n'.join(generate_flights_from_json(path_flights_file, sim_data['pseudopilot_data'], sim_data['initial_pseudopilot']))
+    return SCENARIO_TEMPLATE.format(sim_data['pseudopilot_data'], sim_data['airport_alt'], runways, holdings, controllers, flight)
+
 
 with open('test_scenario.txt', 'w', encoding='utf-8') as scenario_file:
-    scenario_file.write(make_test_scenario('flights.json', runway_data, holding_data, controller_data, pseudopilot_data))
+    scenario_file.write(generate_scenario('flights.json', 'wa33.json'))

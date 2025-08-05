@@ -1,8 +1,7 @@
 ### todo:
-* move simdata to json files
 * fill in missing flight data for WA33, WA11
-* add generation of departures too
-* customizable arrivals (intervals, directions, destinations)
-* customizable departures (directions)
-* prepare ~40 arrivals and departures from real life data
+* add generation of departures too: get script to generate 10 coords for EPWA, 3 for EPLL, 3 for EPMO
+* customizable arrivals (at least intervals based on the AD capacity, number per wave)
+* customizable departures (directions?)
+* prepare ~30 more arrivals and ~20 departures from real life data
 * add EPKK/EPKT support

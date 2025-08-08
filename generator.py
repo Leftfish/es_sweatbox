@@ -4,16 +4,19 @@ import random
 from defaults import DEFAULT_HDG, DEFAULT_SPAWN, DEFAULT_TAXI_SPEED, DEFAULT_TAXIWAY_USAGE, \
                      DEFAULT_OBJECT_EXTENT, DEFAULT_REQ_ALT_DEPARTURE, DEFAULT_REQ_ALT_ARRIVAL, \
                      DEFAULT_WAVE_INTERVAL, DEFAULT_WAVE_START, EXCEPTION_MSG_SID_AND_STAR, \
-                     EXCEPTION_MSG_SID_OR_STAR, SPAWN_OFFSET_LO, SPAWN_OFFSET_HI
+                     EXCEPTION_MSG_SID_OR_STAR, SPAWN_OFFSET_LO, SPAWN_OFFSET_HI, MIN_FLIGHTS_PER_WAVE, \
+                     MAX_FLIGHTS_PER_WAVE, DEFAULT_LAST_WAVE
 
 from templates import HOLDING_TEMPLATE, POSITION_TEMPLATE, FPL_TEMPLATE, PSEUDOPILOT_TEMPLATE, \
                       SIMDATA_TEMPLATE, ROUTE_TEMPLATE, REQUALT_TEMPLATE, FLIGHT_TEMPLATE, \
                       SCENARIO_TEMPLATE, RUNWAY_TEMPLATE
 
 
-def import_simdata(simdata_path):
-    with open(simdata_path, 'r', encoding='utf-8') as simdata_file:
-        return json.load(simdata_file)
+def import_data(data_path):
+    with open(data_path, 'r', encoding='utf-8') as data_file:
+        return json.load(data_file)
+
+
 
 def generate_runways(runway_data):
     runways = []
@@ -147,61 +150,102 @@ def generate_single_flight(flight_data, requested_altitude_arrivals, requested_a
 
     return flight
 
-def generate_flights_from_json(path_flights_file,
-                               pseudopilot_data,
-                               initial_pseudopilot,
-                               arrivals_star_waypoints,
-                               requested_altitude_arrivals,
-                               requested_altitude_departures,
-                               inbound_spawns,
-                               wave_interval=DEFAULT_WAVE_INTERVAL):
-    with open(path_flights_file, 'r', encoding='utf-8') as flights_file:
-        all_flights_data = json.load(flights_file)
-        arrivals_data = all_flights_data.get('arrivals', [])
+def filter_flights_by_entry_point(flights, entry_point):
+    filtered = [flight for flight in flights['arrivals'] if flight['fpl_route'].split()[-1] == entry_point]
+    return random.sample(filtered, k=len(filtered)) if filtered else []
 
-    flights = []
-    start = DEFAULT_WAVE_START
+def generate_wave(flight_data, inbound_spawn_points, min_size = 1, max_size = MAX_FLIGHTS_PER_WAVE):
+    max_wave_size = random.randint(min_size, max_size)
+    random.shuffle(inbound_spawn_points)
+    fix_to_flights = {fix: filter_flights_by_entry_point(flight_data, fix) for fix in inbound_spawn_points}
+    print(f"Generating wave with max size {max_wave_size}.")
+    wave = []
+    for fix in inbound_spawn_points:
+        if fix_to_flights[fix]:
+            flight = fix_to_flights[fix].pop()
+            wave.append(flight)
+            print(f"Added flight {flight['callsign']} as arrival from fix {fix}.")
+            if len(wave) >= max_wave_size:
+                break
+    return wave
 
-    for flight_data in arrivals_data:
-        destination_rwy = flight_data.get('destination_rwy', None)
-        tma_boundary = flight_data['fpl_route'].split()[-1]
-        star_waypoints = arrivals_star_waypoints[destination_rwy][tma_boundary]
-        flight = generate_single_flight(flight_data, requested_altitude_arrivals,
-                                        requested_altitude_departures,
-                                        inbound_spawns,pseudopilot_data,
-                                        initial_pseudopilot, start, star_waypoints=star_waypoints)
-        flights.append(flight)
+def convert_wave_to_string(wave, sim_data, start_time = 0):
+    flight_strings = []
+    for flight in wave:
+        entry_fix = flight['fpl_route'].split()[-1]
+        runway = flight['destination_rwy']
+        flight_string = generate_single_flight(flight, sim_data['requested_altitude_arrivals'],
+                                               sim_data['requested_altitude_departures'],
+                                               sim_data['inbound_spawns'], sim_data['pseudopilot_data'],
+                                               sim_data['initial_pseudopilot'], start_time,
+                                               sid_waypoints='', star_waypoints=sim_data['arrivals_star_waypoints'][runway][entry_fix])
+        flight_strings.append(flight_string)
+    return '\n'.join(flight_strings)
 
-        start += wave_interval
 
-    return flights
+def generate_flights_in_waves(runway, sim_data, flight_data, start = DEFAULT_WAVE_START, 
+                              min_size = MIN_FLIGHTS_PER_WAVE, max_size = MAX_FLIGHTS_PER_WAVE,
+                              wave_interval = DEFAULT_WAVE_INTERVAL, last_wave = DEFAULT_LAST_WAVE):
 
-def generate_scenario(path_flights_file, simulation_data_path):
-    sim_data = import_simdata(simulation_data_path)
+    capacity = sim_data['arrivals_max_capacity'][runway]
+    inbound_spawn_points = list(sim_data['inbound_spawns'].keys())
+    
+    plane_count = 0
+    wave_num = 0
+    all_planes = ''
+
+    while True:
+        wave_num += 1
+        wave = generate_wave(flight_data, inbound_spawn_points, min_size, max_size)
+        plane_count += len(wave)
+
+        string_wave = convert_wave_to_string(wave, sim_data, start_time=start)
+        all_planes += string_wave + '\n'
+
+        if start >= last_wave or plane_count >= capacity:
+            break
+        #start += wave_interval
+        start += wave_interval + random.choice([-1, 0, 1])
+
+    print(f'{plane_count} planes generated in {wave_num} waves.')
+    return all_planes
+
+
+def generate_scenario(flights_data_path, simulation_data_path, arrival_runways,
+                      start = DEFAULT_WAVE_START, wave_interval = DEFAULT_WAVE_INTERVAL,
+                      last_wave = DEFAULT_LAST_WAVE, min_size = MIN_FLIGHTS_PER_WAVE,
+                      max_size = MAX_FLIGHTS_PER_WAVE):
+    sim_data = import_data(simulation_data_path)
+    flight_data = import_data(flights_data_path)
 
     runways = generate_runways(sim_data['runway_data'])
     holdings = generate_holdings(sim_data['holding_data'])
     controllers = generate_controllers(sim_data['controller_data'], sim_data['pseudopilot_data'])
-    flight = '\n'.join(generate_flights_from_json(path_flights_file,
-                                                  pseudopilot_data=sim_data['pseudopilot_data'],
-                                                  initial_pseudopilot=sim_data['initial_pseudopilot'],
-                                                  arrivals_star_waypoints=sim_data['arrivals_star_waypoints'],
-                                                  requested_altitude_arrivals=sim_data['requested_altitude_arrivals'],
-                                                  requested_altitude_departures=sim_data['requested_altitude_departures'],
-                                                  inbound_spawns=sim_data['inbound_spawns']))
+    all_flights = ''
+
+    arrivals = ''
+    for runway in arrival_runways:
+        arrivals += generate_flights_in_waves(runway, sim_data, flight_data,
+                                               start=start, wave_interval=wave_interval,
+                                               last_wave=last_wave, min_size=min_size,
+                                               max_size=max_size)
+    all_flights += arrivals
 
     return SCENARIO_TEMPLATE.format(sim_data['pseudopilot_data'],
                                     sim_data['airport_alt'],
                                     runways,
                                     holdings,
                                     controllers,
-                                    flight)
+                                    all_flights)
 
-
-def save_scenario_to_file(path_flights_file, simulation_data_path, output_path):
+def save_scenario(output_path, scenario):
     with open(output_path, 'w', encoding='utf-8') as scenario_file:
-        scenario_file.write(generate_scenario(path_flights_file, simulation_data_path))
-
+        scenario_file.write(scenario)
 
 if __name__ == "__main__":
-    save_scenario_to_file('flights_wa33.json', 'config_wa33.json', 'test_scenario.txt')
+    flights = 'flights_wa33.json'
+    config = 'config_wa33.json'
+    output = 'test_scenario.txt'
+    rwys = ['WA33']
+    save_scenario(output, generate_scenario(flights, config, rwys))
+    print(f'Generated a test scenario with arrivals to EP{rwys[0]} only and saved it to {output}.')

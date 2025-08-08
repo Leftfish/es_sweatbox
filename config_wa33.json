@@ -159,6 +159,11 @@
             "LIMVI": "WA884 ENZAM VAWKU SOFUZ ADINI SISLU LEMBU WA536 WA534 WA533 ERLEG WA529 WA501 ILS33"
         }
     },
+    "arrivals_max_capacity": {
+        "WA33": 28,
+        "MO26": 6,
+        "LL25": 3
+    },
     "requested_altitude_departures": {
         "EPWA": "6000",
         "EPMO": "4000",

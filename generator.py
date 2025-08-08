@@ -58,7 +58,7 @@ def get_spawn_coordinates(flight_data, inbound_spawns):
         spawn_latitude, spawn_longitude = flight_data['latitude'], flight_data['longitude']
     return spawn_latitude, spawn_longitude
 
-def generate_position_data(flight_data, inbound_spawns):
+def generate_position_data(flight_data, inbound_spawns, squawk):
     raw_spawn_latitude, raw_spawn_longitude = get_spawn_coordinates(flight_data, inbound_spawns)
     spawn_latitude = str(float(raw_spawn_latitude) + random.uniform(SPAWN_OFFSET_LO, SPAWN_OFFSET_HI))[:10]
     spawn_longitude = str(float(raw_spawn_longitude) + random.uniform(SPAWN_OFFSET_LO, SPAWN_OFFSET_HI))[:10]
@@ -66,7 +66,7 @@ def generate_position_data(flight_data, inbound_spawns):
     raw_altitude = int(flight_data['altitude'])
     altitude = str(raw_altitude + random.choice([-100, -0, 100]) * random.randint(0, 9))
     return POSITION_TEMPLATE.format(flight_data['transponder'], flight_data['callsign'],
-                                    flight_data['squawk'], spawn_latitude, spawn_longitude,
+                                    squawk, spawn_latitude, spawn_longitude,
                                     altitude, transformed_heading)
 
 def generate_fpl_data(flight_data):
@@ -133,10 +133,10 @@ def generate_reqalt(flight_data, requested_altitude_arrivals,
     return reqalt
 
 def generate_single_flight(flight_data, requested_altitude_arrivals, requested_altitude_departures,\
-                           inbound_spawns, pseudopilot_data, initial_pseudopilot, start,\
+                           inbound_spawns, pseudopilot_data, initial_pseudopilot, start, squawk, \
                            sid_waypoints = '', star_waypoints = ''):
 
-    position = generate_position_data(flight_data, inbound_spawns)
+    position = generate_position_data(flight_data, inbound_spawns, squawk)
     flight_plan = generate_fpl_data(flight_data)
     simdata = generate_simdata(flight_data)
     route = generate_route(flight_data, sid_waypoints, star_waypoints)
@@ -169,7 +169,7 @@ def generate_wave(flight_data, inbound_spawn_points, min_size = 1, max_size = MA
                 break
     return wave
 
-def convert_wave_to_string(wave, sim_data, start_time = 0):
+def convert_wave_to_string(wave, sim_data, squawk_generator, start_time = 0):
     flight_strings = []
     for flight in wave:
         entry_fix = flight['fpl_route'].split()[-1]
@@ -177,14 +177,14 @@ def convert_wave_to_string(wave, sim_data, start_time = 0):
         flight_string = generate_single_flight(flight, sim_data['requested_altitude_arrivals'],
                                                sim_data['requested_altitude_departures'],
                                                sim_data['inbound_spawns'], sim_data['pseudopilot_data'],
-                                               sim_data['initial_pseudopilot'], start_time,
+                                               sim_data['initial_pseudopilot'], start_time, next(squawk_generator),
                                                sid_waypoints='', star_waypoints=sim_data['arrivals_star_waypoints'][runway][entry_fix])
         flight_strings.append(flight_string)
     return '\n'.join(flight_strings)
 
 
-def generate_flights_in_waves(runway, sim_data, flight_data, start = DEFAULT_WAVE_START, 
-                              min_size = MIN_FLIGHTS_PER_WAVE, max_size = MAX_FLIGHTS_PER_WAVE,
+def generate_flights_in_waves(runway, sim_data, flight_data, squawk_generator,
+                              start = DEFAULT_WAVE_START, min_size = MIN_FLIGHTS_PER_WAVE, max_size = MAX_FLIGHTS_PER_WAVE,
                               wave_interval = DEFAULT_WAVE_INTERVAL, last_wave = DEFAULT_LAST_WAVE):
 
     capacity = sim_data['arrivals_max_capacity'][runway]
@@ -199,17 +199,24 @@ def generate_flights_in_waves(runway, sim_data, flight_data, start = DEFAULT_WAV
         wave = generate_wave(flight_data, inbound_spawn_points, min_size, max_size)
         plane_count += len(wave)
 
-        string_wave = convert_wave_to_string(wave, sim_data, start_time=start)
+        string_wave = convert_wave_to_string(wave, sim_data, squawk_generator, start_time=start)
         all_planes += string_wave + '\n'
 
         if start >= last_wave or plane_count >= capacity:
             break
-        #start += wave_interval
-        start += wave_interval + random.choice([-1, 0, 1])
+        wave_interval = wave_interval + random.choice([-1, 0, 1])
+        print(f'Break beteen waves: {wave_interval} minutes.')
+        start += wave_interval
 
     print(f'{plane_count} planes generated in {wave_num} waves.')
     return all_planes
 
+def generate_squawk():
+    max_squawk = 3583 #up to 6777, does not ignore 1000, 1200 etc.
+    squawk = 1
+    while squawk < max_squawk:
+        yield str(oct(squawk))[2:].zfill(4)
+        squawk += 1
 
 def generate_scenario(flights_data_path, simulation_data_path, arrival_runways,
                       start = DEFAULT_WAVE_START, wave_interval = DEFAULT_WAVE_INTERVAL,
@@ -223,9 +230,12 @@ def generate_scenario(flights_data_path, simulation_data_path, arrival_runways,
     controllers = generate_controllers(sim_data['controller_data'], sim_data['pseudopilot_data'])
     all_flights = ''
 
+    squawk_generator = generate_squawk()
+
     arrivals = ''
     for runway in arrival_runways:
         arrivals += generate_flights_in_waves(runway, sim_data, flight_data,
+                                               squawk_generator=squawk_generator,
                                                start=start, wave_interval=wave_interval,
                                                last_wave=last_wave, min_size=min_size,
                                                max_size=max_size)
@@ -243,9 +253,9 @@ def save_scenario(output_path, scenario):
         scenario_file.write(scenario)
 
 if __name__ == "__main__":
-    simulated_flights = 'flights_wa33.json'
+    simulated_flights = 'flights_epwa.json'
     config = 'config_wa33.json'
     output = 'test_scenario.txt'
     rwys = ['WA33']
     save_scenario(output, generate_scenario(simulated_flights, config, rwys))
-    print(f'Generated a test scenario with arrivals to EP{rwys[0]} only and saved it to {output}.')
+    print(f'Generated a test scenario with arrivals only and saved it to {output}.')

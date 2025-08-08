@@ -1,8 +1,6 @@
 ### todo:
-* bug fixes: check overlapping spawns
-* customizable arrivals (at least intervals based on the AD capacity, number per wave)
+* check multiple ADs for arrivals in the same TMA (check for MO26, LL25 first)
 * fill in missing flight data for WA33, WA11
-* remove hard-coded squawks, get them generated instead
 * add generation of departures too: get script to generate 10 coords for EPWA, 3 for EPLL, 3 for EPMO
 * customizable departures (directions?)
 * prepare ~30 more arrivals and ~20 departures from real life data

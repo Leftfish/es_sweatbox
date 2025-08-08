@@ -4,7 +4,7 @@ import random
 from defaults import DEFAULT_HDG, DEFAULT_SPAWN, DEFAULT_TAXI_SPEED, DEFAULT_TAXIWAY_USAGE, \
                      DEFAULT_OBJECT_EXTENT, DEFAULT_REQ_ALT_DEPARTURE, DEFAULT_REQ_ALT_ARRIVAL, \
                      DEFAULT_WAVE_INTERVAL, DEFAULT_WAVE_START, EXCEPTION_MSG_SID_AND_STAR, \
-                     EXCEPTION_MSG_SID_OR_STAR
+                     EXCEPTION_MSG_SID_OR_STAR, SPAWN_OFFSET_LO, SPAWN_OFFSET_HI
 
 from templates import HOLDING_TEMPLATE, POSITION_TEMPLATE, FPL_TEMPLATE, PSEUDOPILOT_TEMPLATE, \
                       SIMDATA_TEMPLATE, ROUTE_TEMPLATE, REQUALT_TEMPLATE, FLIGHT_TEMPLATE, \
@@ -56,7 +56,9 @@ def get_spawn_coordinates(flight_data, inbound_spawns):
     return spawn_latitude, spawn_longitude
 
 def generate_position_data(flight_data, inbound_spawns):
-    spawn_latitude, spawn_longitude = get_spawn_coordinates(flight_data, inbound_spawns)
+    raw_spawn_latitude, raw_spawn_longitude = get_spawn_coordinates(flight_data, inbound_spawns)
+    spawn_latitude = str(float(raw_spawn_latitude) + random.uniform(SPAWN_OFFSET_LO, SPAWN_OFFSET_HI))[:10]
+    spawn_longitude = str(float(raw_spawn_longitude) + random.uniform(SPAWN_OFFSET_LO, SPAWN_OFFSET_HI))[:10]
     transformed_heading = transform_heading(flight_data)
     raw_altitude = int(flight_data['altitude'])
     altitude = str(raw_altitude + random.choice([-100, -0, 100]) * random.randint(0, 9))

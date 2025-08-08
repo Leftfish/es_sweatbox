@@ -4,14 +4,14 @@
     "initial_pseudopilot": "EPWA_X_APP",
     "runway_data": [
         {
-            "name": "WA33",
+            "name": "WA29",
             "lat1": "52.1611018",
             "lon1": "20.9837584",
             "lat2": "52.1714197",
             "lon2": "20.9469761"
         },
         {
-            "name": "WA29",
+            "name": "WA33",
             "lat1": "52.1495910",
             "lon1": "20.9814126",
             "lat2": "52.1784955",

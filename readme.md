@@ -1,4 +1,5 @@
 ### todo:
+* bug fixes: check overlapping spawns
 * customizable arrivals (at least intervals based on the AD capacity, number per wave)
 * fill in missing flight data for WA33, WA11
 * remove hard-coded squawks, get them generated instead

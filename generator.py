@@ -243,9 +243,9 @@ def save_scenario(output_path, scenario):
         scenario_file.write(scenario)
 
 if __name__ == "__main__":
-    flights = 'flights_wa33.json'
+    simulated_flights = 'flights_wa33.json'
     config = 'config_wa33.json'
     output = 'test_scenario.txt'
     rwys = ['WA33']
-    save_scenario(output, generate_scenario(flights, config, rwys))
+    save_scenario(output, generate_scenario(simulated_flights, config, rwys))
     print(f'Generated a test scenario with arrivals to EP{rwys[0]} only and saved it to {output}.')

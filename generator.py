@@ -1,3 +1,6 @@
+'''Functions for generating a scenario of departing and arriving flights.
+Uses JSON data about flights and TMA data.'''
+
 import json
 import random
 
@@ -64,7 +67,14 @@ def generate_inbound_spawn(flight_data, arrival_spawns):
     spawn_longitude = str(float(raw_spawn_longitude) + random.uniform(SPAWN_OFFSET_LO, SPAWN_OFFSET_HI))[:10]
     return spawn_latitude, spawn_longitude
 
-
+def generate_departure_spawns(init_lat, init_lon, offset_lat, offset_lon):
+    i = 0
+    while True:
+        dot_lat, dot_lon = init_lat.find('.'), init_lon.find('.')
+        latitude = f'{init_lat[:dot_lat]}.{int(init_lat[dot_lat+1:]) + i * int(offset_lat)}'
+        longitude = f'{init_lon[:dot_lon]}.{int(init_lon[dot_lon+1:]) + i * int(offset_lon)}'
+        yield (latitude, longitude)
+        i += 1
 
 def generate_position_data(flight_data, spawn, squawk):
     spawn_latitude, spawn_longitude = spawn
@@ -118,8 +128,8 @@ def generate_route(flight_data, sid_waypoints='', star_waypoints=''):
         route += ROUTE_TEMPLATE.format(sid_waypoints + ' ' + flight_data['fpl_route'])
     return route
 
-def generate_reqalt(flight_data, requested_altitude_arrivals=None,
-                    requested_altitude_departures=None, 
+def generate_reqalt(flight_data, requested_altitude_arrivals,
+                    requested_altitude_departures,
                     sid_waypoints='', star_waypoints=''):
 
     assert sid_waypoints or star_waypoints, EXCEPTION_MSG_SID_OR_STAR
@@ -144,11 +154,10 @@ def generate_reqalt(flight_data, requested_altitude_arrivals=None,
 
     return reqalt
 
-def generate_single_flight(flight_data,
-                           requested_altitude_arrivals,
-                           requested_altitude_departures,
-                           spawn, pseudopilot_data,
+def generate_single_flight(flight_data, spawn, pseudopilot_data,
                            initial_pseudopilot, start, squawk,
+                           requested_altitude_arrivals = None,
+                           requested_altitude_departures = None,
                            sid_waypoints = '', star_waypoints = ''):
 
     position = generate_position_data(flight_data, spawn, squawk)
@@ -192,14 +201,13 @@ def convert_arrival_wave_to_string(wave, sim_data, squawk_generator, start_time 
         runway = flight['destination_rwy']
         spawn = generate_inbound_spawn(flight, sim_data['arrival_spawns'])
         squawk = next(squawk_generator)
-        flight_string = generate_single_flight(flight, sim_data['requested_altitude_arrivals'],
-                                               sim_data['requested_altitude_departures'],
+        flight_string = generate_single_flight(flight,
                                                spawn,
                                                sim_data['pseudopilot_data'],
                                                sim_data['initial_pseudopilot'],
                                                start_time,
                                                squawk,
-                                               sid_waypoints='',
+                                               requested_altitude_arrivals=sim_data['requested_altitude_arrivals'],
                                                star_waypoints=sim_data['arrivals_star_waypoints'][runway][entry_fix])
         flight_strings.append(flight_string)
     return '\n'.join(flight_strings)
@@ -230,7 +238,7 @@ def generate_flights_in_waves(runway, sim_data, flight_data, squawk_generator,
         print(f'Break beteen waves: {wave_interval} minutes.')
         start += wave_interval
 
-    print(f'{plane_count} planes generated in {wave_num} waves.')
+    print(f'{plane_count} arriving planes generated in {wave_num} waves.')
     return all_planes
 
 def generate_squawk():
@@ -240,29 +248,66 @@ def generate_squawk():
         yield str(oct(squawk))[2:].zfill(4)
         squawk += 1
 
-def generate_scenario(flights_data_path, simulation_data_path, arrival_runways,
+def generate_departures_string(n,runway, flight_data, sim_data, squawk_generator):
+    departures_string = ''
+    spawns = generate_departure_spawns(*sim_data['departures_first_spawn'][runway], *sim_data['departures_spawn_offset'][runway])
+    departures = random.sample(flight_data['departures'], n)
+    departure_sid_waypoints = sim_data['departures_sid_waypoints'][runway]
+    for flight in departures:
+        spawn = next(spawns)
+        squawk = next(squawk_generator)
+        exit_fix = flight['fpl_route'].split()[0]
+        departures_string += generate_single_flight(flight,
+                                                    spawn,
+                                                    sim_data['pseudopilot_data'],
+                                                    sim_data['initial_pseudopilot'],
+                                                    start=0,
+                                                    squawk=squawk,
+                                                    sid_waypoints=departure_sid_waypoints[exit_fix],
+                                                    requested_altitude_departures=sim_data['requested_altitude_departures'])
+        departures_string += '\n'
+        print(f"Added flight {flight['callsign']} as departure to fix {exit_fix}.")
+    print(f'Generated {n} departures from runway {runway}.')
+    return departures_string
+
+def generate_scenario(flights_data_path,
+                      simulation_data_path,
+                      arrival_runways,
+                      departure_runways,
                       start = DEFAULT_WAVE_START,
-                      last_wave = DEFAULT_LAST_WAVE):
+                      last_wave = DEFAULT_LAST_WAVE,
+                      departure_number = 0):
     sim_data = import_data(simulation_data_path)
     flight_data = import_data(flights_data_path)
 
     runways = generate_runways(sim_data['runway_data'])
     holdings = generate_holdings(sim_data['holding_data'])
     controllers = generate_controllers(sim_data['controller_data'], sim_data['pseudopilot_data'])
-    all_flights = ''
 
     squawk_generator = generate_squawk()
 
+    all_flights = ''
+
     arrivals = ''
+
     for runway in arrival_runways:
-        arrivals += generate_flights_in_waves(runway, sim_data, flight_data,
-                                               squawk_generator=squawk_generator,
-                                               start=start,
-                                               last_wave=last_wave,
-                                               wave_interval=sim_data['arrivals_wave_intervals'][runway],
-                                               min_size=sim_data['arrivals_wave_minimum'][runway],
-                                               max_size=sim_data['arrivals_wave_maximum'][runway])
+        arrivals += generate_flights_in_waves(runway,
+                                              sim_data,
+                                              flight_data,
+                                              squawk_generator=squawk_generator,
+                                              start=start,
+                                              last_wave=last_wave,
+                                              wave_interval=sim_data['arrivals_wave_intervals'][runway],
+                                              min_size=sim_data['arrivals_wave_minimum'][runway],
+                                              max_size=sim_data['arrivals_wave_maximum'][runway])
     all_flights += arrivals
+
+    for runway in departure_runways:
+        all_flights += generate_departures_string(departure_number,
+                                                  runway,
+                                                  flight_data,
+                                                  sim_data,
+                                                  squawk_generator)
 
     return SCENARIO_TEMPLATE.format(sim_data['pseudopilot_data'],
                                     sim_data['airport_alt'],
@@ -279,37 +324,11 @@ def test():
     simulated_flights = 'flights_epwa.json'
     config = 'config_wa33.json'
     output = 'test_scenario.txt'
-    rwys = ['WA33'] 
+    arwys = ['WA33']
+    drwys = ['WA29']
     #rwys = ['WA33', 'MO26', 'LL25']
-    save_scenario(output, generate_scenario(simulated_flights, config, rwys))
-    print(f'Generated a test scenario with arrivals only and saved it to {output}.')
+    save_scenario(output, generate_scenario(simulated_flights, config, arwys, drwys, departure_number=8))
+    print(f'Generated a test scenario and saved it to {output}.')
 
 if __name__ == "__main__":
     test()
-    pass
-
-
-def generate_departure_spawns(init_lat, init_lon, offset_lat, offset_lon):
-    i = 0
-    while True:
-        dot_lat, dot_lon = init_lat.find('.'), init_lon.find('.')
-        latitude = f'{init_lat[:dot_lat]}.{int(init_lat[dot_lat+1:]) + i * int(offset_lat)}'
-        longitude = f'{init_lon[:dot_lon]}.{int(init_lon[dot_lon+1:]) + i * int(offset_lon)}'
-        yield (latitude, longitude)
-        i += 1
-
-
-squawks = generate_squawk()
-spawns = generate_departure_spawns('52.1629316', '19.9771741', '-2500', '9500')
-flts = import_data('flights_epwa.json')
-dep = flts['departures'][0]
-sim = import_data('config_wa33.json')
-
-sidwpt = sim['departures_sid_waypoints']['WA29']['EVINA']
-rqaltdep = sim['requested_altitude_departures']
-
-print(generate_position_data(dep, next(spawns), next(squawks)))
-print(generate_fpl_data(dep))
-print(generate_simdata(dep))
-print(generate_route(dep, sid_waypoints=sidwpt))
-print(generate_reqalt(dep, requested_altitude_departures=rqaltdep, sid_waypoints=sidwpt))

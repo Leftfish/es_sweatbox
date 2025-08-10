@@ -166,8 +166,8 @@
     },
     "arrivals_wave_intervals": {
         "WA33": 4,
-        "MO26": 5,
-        "LL25": 6
+        "MO26": 7,
+        "LL25": 8
     },
     "arrivals_wave_minimum": {
         "WA33": 2,
@@ -187,8 +187,20 @@
     },
     "departures_sid_waypoints": {
         "WA29": {
-            "EVINA": "WA901 WA921 EVDEX NIPUS"
+            "EVINA": "WA901 WA921 EVDEX NIPUS",
+            "SOXER": "WA901 WA902 WA903 MAKUS",
+            "OLILA": "WA901 WA931 WA932 WA791 INRAS RODEV",
+            "BAMSO": "WA901 WA931 WA932 WA791 BITWA WA571",
+            "XIMBA": "WA901 WA921 EVDEX XENOM TISTA",
+            "LOLSI": "WA901 WA902 WA903 MAKUS"
         }
+    },
+    "maximum_departures": {
+        "WA29": 8,
+        "WA33": 2
+    },
+    "runway_heading": {
+        "WA29": 288
     },
     
     "requested_altitude_departures": {

@@ -4,8 +4,9 @@ Uses JSON data about flights and TMA data.'''
 import json
 import random
 
-from defaults import MINIMUM_ARRIVAL_ALTITUDE, DEFAULT_SPAWN, DEFAULT_TAXI_SPEED, DEFAULT_TAXIWAY_USAGE, \
-                     DEFAULT_OBJECT_EXTENT, DEFAULT_REQ_ALT_DEPARTURE, DEFAULT_REQ_ALT_ARRIVAL, \
+from defaults import MINIMUM_ARRIVAL_ALTITUDE, DEFAULT_SPAWN, DEFAULT_TAXI_SPEED, \
+                     DEFAULT_TAXIWAY_USAGE, DEFAULT_OBJECT_EXTENT, \
+                     DEFAULT_REQ_ALT_DEPARTURE, DEFAULT_REQ_ALT_ARRIVAL, \
                      DEFAULT_WAVE_START, DEFAULT_LAST_WAVE, \
                      EXCEPTION_MSG_SID_AND_STAR, EXCEPTION_MSG_SID_OR_STAR, \
                      SPAWN_OFFSET_LO, SPAWN_OFFSET_HI, \
@@ -17,12 +18,15 @@ from templates import HOLDING_TEMPLATE, POSITION_TEMPLATE, FPL_TEMPLATE, PSEUDOP
 
 
 def import_data(data_path):
+    '''A simple JSON opener'''
+
     with open(data_path, 'r', encoding='utf-8') as data_file:
         return json.load(data_file)
 
-
-
 def generate_runways(runway_data):
+    '''Generates runway definitions for the scenario. Formula per ES docs.
+    ILS<runway name>:<threshold latitude>:<threshold longitude>:<far end latitude>:<far end longitude>'''
+
     runways = []
     for runway_name, runway_info in runway_data.items():
         runways.append(RUNWAY_TEMPLATE.format(runway_name,
@@ -33,6 +37,9 @@ def generate_runways(runway_data):
     return '\n'.join(runways)
 
 def generate_holdings(holding_data):
+    '''Generates holding definitions for the scenario. Formula per ES docs.
+    HOLDING:<fix name>:<inbound course>:<direction>'''
+
     holdings = []
     for holding in holding_data:
         turn_direction = '-1' if holding['turn'] == 'left' else '1'
@@ -42,6 +49,9 @@ def generate_holdings(holding_data):
     return '\n'.join(holdings)
 
 def generate_controllers(controller_data, pseudopilot_data):
+    '''Generates controller definitions for the scenario. Fornula per ES docs.
+    CONTROLLER:<callsign>:<frequency>'''
+
     controllers = []
     for controller in controller_data:
         controllers.append(PSEUDOPILOT_TEMPLATE.format(pseudopilot_data,
@@ -50,10 +60,15 @@ def generate_controllers(controller_data, pseudopilot_data):
     return '\n'.join(controllers)
 
 def transform_heading(initial_heading):
-    transformed_heading = int(float(initial_heading) * 2.88 + 0.5) << 2  # per Euroscope docs
+    '''Transforms a heading given as int or str in degrees into an integer
+    accepted by Euroscope/sweatbox. Formula per Euroscope docs.'''
+
+    transformed_heading = int(float(initial_heading) * 2.88 + 0.5) << 2
     return transformed_heading
 
 def get_spawn_coordinates(flight_data, arrival_spawns):
+    '''Reads the flight data and determines the spawn coordinates.'''
+
     if not flight_data['latitude'] or not flight_data['longitude']:
         tma_boundary = flight_data['fpl_route'].split()[-1]  # last wpt is the TMA boundary
         spawn_latitude, spawn_longitude = arrival_spawns.get(tma_boundary, DEFAULT_SPAWN)
@@ -62,12 +77,17 @@ def get_spawn_coordinates(flight_data, arrival_spawns):
     return spawn_latitude, spawn_longitude
 
 def generate_inbound_spawn(flight_data, arrival_spawns):
+    '''Generates the inbound spawn coordinates and randomizes them by an offset.'''
+
     raw_spawn_latitude, raw_spawn_longitude = get_spawn_coordinates(flight_data, arrival_spawns)
     spawn_latitude = str(float(raw_spawn_latitude) + random.uniform(SPAWN_OFFSET_LO, SPAWN_OFFSET_HI))[:10]
     spawn_longitude = str(float(raw_spawn_longitude) + random.uniform(SPAWN_OFFSET_LO, SPAWN_OFFSET_HI))[:10]
     return spawn_latitude, spawn_longitude
 
 def generate_departure_spawns(init_lat, init_lon, offset_lat, offset_lon):
+    '''Generates infinite spawn position on a single axis (e.g. runway axis or taxiway axis),
+    starting from (init_lat, init_lon) and moving along the specified offsets.'''
+
     i = 0
     while True:
         dot_lat, dot_lon = init_lat.find('.'), init_lon.find('.')
@@ -77,12 +97,19 @@ def generate_departure_spawns(init_lat, init_lon, offset_lat, offset_lon):
         i += 1
 
 def is_proper_arrival(flight_data, sim_data):
-    # checks if the last waypoint is an entry fix to TMA
+    '''Checks if the last waypoint is an entry fix to TMA. If it is, it is a properly
+    defined arrival.'''
+
     if sim_data:
         return flight_data['fpl_route'].split()[-1] in sim_data['arrivals_fix_headings'].keys()
     return False
 
 def generate_initial_heading(flight_data, sim_data=None, runway=None):
+    '''For arrivals, reads the heading from the simulation data according to the TMA entry fix.
+    For departures, reads the heading from the runway data.
+     
+    Caution: for departures it is assumed that the departures spawn on the runway!'''
+
     if is_proper_arrival(flight_data, sim_data):
         heading = sim_data['arrivals_fix_headings'][flight_data['fpl_route'].split()[-1]]
 
@@ -92,7 +119,9 @@ def generate_initial_heading(flight_data, sim_data=None, runway=None):
     return transform_heading(heading)
 
 def generate_initial_altitude(flight_data):
-    # randomizes initial altitude, but for arrivals only
+    '''Generates the initial altitude for the flight. For arrival, slightly randomizes
+    the altitude to simulate the ongoing descent'''
+
     raw_altitude = int(flight_data['altitude'])
     if raw_altitude >= MINIMUM_ARRIVAL_ALTITUDE:
         altitude = str(raw_altitude + random.choice([-100, -0, 100]) * random.randint(0, 9))
@@ -101,6 +130,9 @@ def generate_initial_altitude(flight_data):
     return altitude
 
 def generate_position_data(flight_data, spawn, squawk, sim_data=None, runway=None):
+    '''Generates position data for the given flight. Formula per ES docs.
+    @<transponder flag>:<callsign>:<squawk code>:1:<latitude>:<longitude>:<altitude>:0:<heading>:0'''
+
     spawn_latitude, spawn_longitude = spawn
     heading = generate_initial_heading(flight_data, sim_data, runway)
     altitude = generate_initial_altitude(flight_data)
@@ -109,6 +141,11 @@ def generate_position_data(flight_data, spawn, squawk, sim_data=None, runway=Non
                                     altitude, heading)
 
 def generate_fpl_data(flight_data):
+    '''Generates flight plan data for the given flight. Formula per ES docs.
+    $FP<callsign>:*A:<flight plan type>:<aircraft type>:<true air speed>:<origin airport>:
+    <departure time EST>:<departure time ACT>:<final cruising altitude>:<destination airport>:
+    <HRS en route>:<MINS en route>:<HRS fuel>:<MINS fuel>:<alternate airport>:<remarks>:<route>'''
+
     return FPL_TEMPLATE.format(flight_data['callsign'],
                                flight_data['flight_plan_type'],
                                flight_data['aircraft_type'],
@@ -127,6 +164,9 @@ def generate_fpl_data(flight_data):
                                flight_data['fpl_route'])
 
 def generate_simdata(flight_data):
+    '''Generates simulation data for the given flight. Formula per ES docs.
+    SIMDATA:<callsign>:<plane type>:<livery>:<maximum taxi speed>:<taxiway usage>:<object extent>'''
+
     taxi_speed = flight_data.get('max_taxi_speed', DEFAULT_TAXI_SPEED)
     taxiway_usage = flight_data.get('taxiway_usage', DEFAULT_TAXIWAY_USAGE)
     object_extent = flight_data.get('object_extent', DEFAULT_OBJECT_EXTENT)
@@ -137,7 +177,8 @@ def generate_simdata(flight_data):
     return simdata
 
 def generate_route(flight_data, sid_waypoints='', star_waypoints=''):
-
+    '''Generates route data for the given flight. Formula per ES docs, but simplified (route only).
+    $ROUTE:<point by point route>'''
     assert sid_waypoints or star_waypoints, EXCEPTION_MSG_SID_OR_STAR
     assert not (sid_waypoints and star_waypoints), EXCEPTION_MSG_SID_AND_STAR
 
@@ -151,11 +192,16 @@ def generate_route(flight_data, sid_waypoints='', star_waypoints=''):
 def generate_reqalt(flight_data, requested_altitude_arrivals,
                     requested_altitude_departures, destination_runway = None,
                     sid_waypoints='', star_waypoints=''):
+    '''Generates requested altitude data for the given flight. Formula per ES docs.
+    $REQALT:<fix>:<altitude>
+    
+    If star_waypoints are provided, assumes it is an arrival and the last waypoint
+    in the route is the TMA boundary used as <fix>. If sid_waypoints are provided,
+    omits the <fix> and uses the default initial climb.'''
 
     assert sid_waypoints or star_waypoints, EXCEPTION_MSG_SID_OR_STAR
     assert not (sid_waypoints and star_waypoints), EXCEPTION_MSG_SID_AND_STAR
 
-    # assumes that last wpt in the route is the TMA boundary
     tma_boundary = flight_data['fpl_route'].split()[-1]
 
     if star_waypoints:
@@ -181,26 +227,51 @@ def generate_single_flight(flight_data, spawn, pseudopilot_data,
                            requested_altitude_departures = None,
                            sid_waypoints = '', star_waypoints = ''):
 
-    position = generate_position_data(flight_data, spawn, squawk, sim_data=sim_data, runway=departure_runway)
+    '''Puts together the various data to generate a single string with flight data
+    formatted per ES docs.'''
+
+    position = generate_position_data(flight_data,
+                                      spawn,
+                                      squawk,
+                                      sim_data=sim_data,
+                                      runway=departure_runway)
     flight_plan = generate_fpl_data(flight_data)
     simdata = generate_simdata(flight_data)
     route = generate_route(flight_data, sid_waypoints, star_waypoints)
-    reqalt = generate_reqalt(flight_data, requested_altitude_arrivals,
-                             requested_altitude_departures, destination_runway,
-                             sid_waypoints, star_waypoints)
+    reqalt = generate_reqalt(flight_data,
+                             requested_altitude_arrivals,
+                             requested_altitude_departures,
+                             destination_runway,
+                             sid_waypoints,
+                             star_waypoints)
 
-    flight = FLIGHT_TEMPLATE.format(pseudopilot_data, position,
-                                    flight_plan, simdata,
-                                    route, str(start),
-                                    reqalt, initial_pseudopilot)
+    flight = FLIGHT_TEMPLATE.format(pseudopilot_data,
+                                    position,
+                                    flight_plan,
+                                    simdata,
+                                    route,
+                                    str(start),
+                                    reqalt,
+                                    initial_pseudopilot)
 
     return flight
 
 def filter_flights_by_entry_point(flights, entry_point):
+    '''Filters the list of flights by the last waypoint in their flight plan,
+    assumed to be the TMA entry fix.'''
+
     filtered = [flight for flight in flights['arrivals'] if flight['fpl_route'].split()[-1] == entry_point]
     return random.sample(filtered, k=len(filtered)) if filtered else []
 
 def generate_arrival_wave(flight_data, runway, inbound_spawn_points, min_size, max_size):
+    '''Generates a wave of arrival flights for a specific runway.
+    Expects runway defined as final two letters and number, e.g. WA33 or KK25.
+
+    1) Shuffles the inbound spawn points to ensure more diverse scenarios.
+    2) Filters all flights in flight_data by the TMA entry points.
+    3) Generates a wave of size between min_size and max_size (inclusive)
+    4) Returns a list of dictionaries with flight data.'''
+
     max_wave_size = random.randint(min_size, max_size)
     random.shuffle(inbound_spawn_points)
     fix_to_flights = {fix: filter_flights_by_entry_point(flight_data, fix) for fix in inbound_spawn_points}
@@ -218,6 +289,9 @@ def generate_arrival_wave(flight_data, runway, inbound_spawn_points, min_size, m
     return wave
 
 def convert_arrival_wave_to_string(wave, sim_data, squawk_generator, runway, start_time = 0):
+    '''Converts a list of dictionaries representing flight data into a string format,
+    formatted per ES docs.'''
+
     flight_strings = []
     for flight in wave:
         entry_fix = flight['fpl_route'].split()[-1]
@@ -240,6 +314,10 @@ def convert_arrival_wave_to_string(wave, sim_data, squawk_generator, runway, sta
 def generate_flights_in_waves(runway, sim_data, flight_data, squawk_generator,
                               min_size, max_size, wave_interval,
                               start, last_wave):
+
+    '''Generates a series of arrival flight waves for a specific runway.
+    The waves stops after last_wave (minute) is reached or exceeded, 
+    or the total number of planes reaches or exceeds the runway capacity.'''
 
     capacity = sim_data['arrivals_max_capacity'][runway]
     inbound_spawn_points = list(sim_data['arrival_spawns'].keys())
@@ -266,13 +344,19 @@ def generate_flights_in_waves(runway, sim_data, flight_data, squawk_generator,
     return all_planes
 
 def generate_squawk():
-    max_squawk = 3583 #up to 6777, does not ignore 1000, 1200 etc.
+    '''Generates a sequence of squawk codes. Simple to the fault, 
+    generates codes from 0001 to 6777, but does not ignore 1000, 1200 etc.'''
+
+    max_squawk = 3583 #oct 6777
     squawk = 1
-    while squawk < max_squawk:
+    while squawk <= max_squawk:
         yield str(oct(squawk))[2:].zfill(4)
         squawk += 1
 
 def generate_departures_string(n, runway, flight_data, sim_data, squawk_generator):
+    '''Generates a string representation of departure flights for a specific runway.
+    The flights are a sample of n from the departure flights defined in the flight data JSON.'''
+
     departures_string = ''
     spawns = generate_departure_spawns(*sim_data['departures_first_spawn'][runway], *sim_data['departures_spawn_offset'][runway])
     departures = random.sample(flight_data['departures'], n)
@@ -303,6 +387,8 @@ def generate_scenario(flights_data_path,
                       start = DEFAULT_WAVE_START,
                       last_wave = DEFAULT_LAST_WAVE,
                       departure_number = 0):
+    '''Generates a Euroscope sweatbox scenario with arrivals and departures.'''
+
     sim_data = import_data(simulation_data_path)
     flight_data = import_data(flights_data_path)
 
@@ -343,10 +429,12 @@ def generate_scenario(flights_data_path,
                                     all_flights)
 
 def save_scenario(output_path, scenario):
+    '''Saves the scenario to output_path text file.'''
+
     with open(output_path, 'w', encoding='utf-8') as scenario_file:
         scenario_file.write(scenario)
 
-def test():
+if __name__ == "__main__":
     simulated_flights = 'flights_epwa.json'
     config = 'config_wa33.json'
     output = 'test_scenario.txt'
@@ -355,6 +443,3 @@ def test():
     #rwys = ['WA33', 'MO26', 'LL25']
     save_scenario(output, generate_scenario(simulated_flights, config, arwys, drwys, departure_number=8))
     print(f'Generated a test scenario and saved it to {output}.')
-
-if __name__ == "__main__":
-    test()

@@ -4,7 +4,7 @@ Uses JSON data about flights and TMA data.'''
 import json
 import random
 
-from defaults import DEFAULT_HDG, DEFAULT_SPAWN, DEFAULT_TAXI_SPEED, DEFAULT_TAXIWAY_USAGE, \
+from defaults import MINIMUM_ARRIVAL_ALTITUDE, DEFAULT_SPAWN, DEFAULT_TAXI_SPEED, DEFAULT_TAXIWAY_USAGE, \
                      DEFAULT_OBJECT_EXTENT, DEFAULT_REQ_ALT_DEPARTURE, DEFAULT_REQ_ALT_ARRIVAL, \
                      DEFAULT_WAVE_START, DEFAULT_LAST_WAVE, \
                      EXCEPTION_MSG_SID_AND_STAR, EXCEPTION_MSG_SID_OR_STAR, \
@@ -76,23 +76,37 @@ def generate_departure_spawns(init_lat, init_lon, offset_lat, offset_lon):
         yield (latitude, longitude)
         i += 1
 
-def generate_position_data(flight_data, spawn, squawk, sim_data = None, runway=None):
-    spawn_latitude, spawn_longitude = spawn
-    heading = flight_data['initial_heading']
+def is_proper_arrival(flight_data, sim_data):
+    # checks if the last waypoint is an entry fix to TMA
+    if sim_data:
+        return flight_data['fpl_route'].split()[-1] in sim_data['arrivals_fix_headings'].keys()
+    return False
 
-    if not heading: #for departures in flight data JSON the heading entry may be empty
+def generate_initial_heading(flight_data, sim_data=None, runway=None):
+    if is_proper_arrival(flight_data, sim_data):
+        heading = sim_data['arrivals_fix_headings'][flight_data['fpl_route'].split()[-1]]
+
+    else:
         assert sim_data and runway, 'When no initial heading is provided, sim data and runway are required.'
         heading = sim_data['runway_data'][runway]['heading']
+    return transform_heading(heading)
 
-    transformed_heading = transform_heading(heading)
+def generate_initial_altitude(flight_data):
+    # randomizes initial altitude, but for arrivals only
     raw_altitude = int(flight_data['altitude'])
-    if raw_altitude >= 1000:
+    if raw_altitude >= MINIMUM_ARRIVAL_ALTITUDE:
         altitude = str(raw_altitude + random.choice([-100, -0, 100]) * random.randint(0, 9))
     else:
         altitude = str(raw_altitude)
+    return altitude
+
+def generate_position_data(flight_data, spawn, squawk, sim_data=None, runway=None):
+    spawn_latitude, spawn_longitude = spawn
+    heading = generate_initial_heading(flight_data, sim_data, runway)
+    altitude = generate_initial_altitude(flight_data)
     return POSITION_TEMPLATE.format(flight_data['transponder'], flight_data['callsign'],
                                     squawk, spawn_latitude, spawn_longitude,
-                                    altitude, transformed_heading)
+                                    altitude, heading)
 
 def generate_fpl_data(flight_data):
     return FPL_TEMPLATE.format(flight_data['callsign'],
@@ -215,7 +229,8 @@ def convert_arrival_wave_to_string(wave, sim_data, squawk_generator, runway, sta
                                                sim_data['initial_pseudopilot'],
                                                start_time,
                                                squawk,
-                                               runway,
+                                               sim_data=sim_data,
+                                               destination_runway=runway,
                                                requested_altitude_arrivals=sim_data['requested_altitude_arrivals'],
                                                star_waypoints=sim_data['arrivals_star_waypoints'][runway][entry_fix])
         flight_strings.append(flight_string)

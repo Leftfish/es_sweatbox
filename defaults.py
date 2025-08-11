@@ -3,7 +3,7 @@
 DEFAULT_SPAWN = ('51.0', '20.0')
 # +/- in the middle of Poland
 
-DEFAULT_HDG = '180.0'
+MINIMUM_ARRIVAL_ALTITUDE = 5000
 
 DEFAULT_REQ_ALT_ARRIVAL = '10000'
 # FL100 which is typically the lowest available in controlled airspace outside of TMAs in Poland

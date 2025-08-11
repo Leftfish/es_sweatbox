@@ -163,6 +163,14 @@
             "LIMVI": "WA884 ENZAM VAWKU SOFUZ ADINI SISLU LEMBU WA536 WA534 WA533 ERLEG WA529 WA501 ILS33"
         }
     },
+    "arrivals_fix_headings": {
+            "AGAVA": "80.0",
+            "LOGDA": "355.0",
+            "SORIX": "123.0",
+            "BIMPA": "77.0",
+            "NEPOX": "320.0",
+            "LIMVI": "340.0"
+    },
     "arrivals_max_capacity": {
         "WA33": 28,
         "MO26": 6,

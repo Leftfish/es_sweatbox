@@ -3,7 +3,7 @@
 DEFAULT_SPAWN = ('51.0', '20.0')
 # +/- in the middle of Poland
 
-DEFAULT_HDG = '180'
+DEFAULT_HDG = '180.0'
 
 DEFAULT_REQ_ALT_ARRIVAL = '10000'
 # FL100 which is typically the lowest available in controlled airspace outside of TMAs in Poland
@@ -22,3 +22,5 @@ EXCEPTION_MSG_SID_OR_STAR = "Either SID or STAR waypoints must be provided for e
 EXCEPTION_MSG_SID_AND_STAR = "Only one of SID or STAR waypoints should be provided for each flight."
 
 SPAWN_OFFSET_LO, SPAWN_OFFSET_HI = -0.1, 0.1
+
+FIR_PREFIX = 'EP'

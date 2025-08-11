@@ -2,36 +2,40 @@
     "pseudopilot_data": "ALL",
     "airport_alt": "350.0",
     "initial_pseudopilot": "EPWA_X_APP",
-    "runway_data": [
-        {
-            "name": "WA29",
+    "runway_data": {
+        "WA29": {
             "lat1": "52.1611018",
             "lon1": "20.9837584",
             "lat2": "52.1714197",
-            "lon2": "20.9469761"
+            "lon2": "20.9469761",
+            "heading": "288.0",
+            "heading_holding_pt": "198.0"
         },
-        {
-            "name": "WA33",
+        "WA33": {
             "lat1": "52.1495910",
             "lon1": "20.9814126",
             "lat2": "52.1784955",
-            "lon2": "20.9559491"
+            "lon2": "20.9559491",
+            "heading": "326.0",
+            "heading_holding_pt": "236.0"
         },
-        {
-            "name": "MO26",
+        "MO26": {
             "lat1": "52.4529077",
             "lon1": "20.6697338",
             "lat2": "52.4495399",
-            "lon2": "20.6339789"
+            "lon2": "20.6339789",
+            "heading": "256.0",
+            "heading_holding_pt": "166.0"
         },
-        {
-            "name": "LL25",
+        "LL25": {
             "lat1": "51.7236600",
             "lon1": "19.4058971",
             "lat2": "51.7163490",
-            "lon2": "19.3727805"
+            "lon2": "19.3727805",
+            "heading": "245.0",
+            "heading_holding_pt": "155.0"
         }
-    ],
+    },
     "holding_data": [
         {
             "fix": "AGAVA",

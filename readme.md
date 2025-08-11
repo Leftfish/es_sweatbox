@@ -1,7 +1,5 @@
 ### todo:
 * check multiple ADs for arrivals in the same TMA (check for MO26, LL25 first)
-* "destination_rwy": "WA33" should not be in json, should be parametrized
-* "initial heading" for departures should be parametrized too
 * fill in missing flight data for WA33, WA11
 * enable WA15 departures
 * customizable and arrivals departures? (directions?)

@@ -363,8 +363,10 @@ def generate_departures_string(n, runway, flight_data, sim_data, squawk_generato
     departures_string = ''
     spawns = generate_departure_spawns(*sim_data['departures_first_spawn'][runway], *sim_data['departures_spawn_offset'][runway])
     departures = random.sample(flight_data['departures'], n)
-    departure_sid_waypoints = sim_data['departures_sid_waypoints'][runway]
+    departure_sid_waypoints = sim_data['departures_sid_waypoints']
     for flight in departures:
+        if not FIR_PREFIX + runway[:2] == flight['origin_airport']:
+            continue
         spawn = next(spawns)
         squawk = next(squawk_generator)
         exit_fix = flight['fpl_route'].split()[0]
@@ -376,7 +378,7 @@ def generate_departures_string(n, runway, flight_data, sim_data, squawk_generato
                                                     squawk=squawk,
                                                     sim_data=sim_data,
                                                     departure_runway=runway,
-                                                    sid_waypoints=departure_sid_waypoints[exit_fix],
+                                                    sid_waypoints=departure_sid_waypoints[runway][exit_fix],
                                                     requested_altitude_departures=sim_data['requested_altitude_departures'])
         departures_string += '\n'
         print(f"Added flight {flight['callsign']} as departure to fix {exit_fix}.")
@@ -439,7 +441,7 @@ def save_scenario(output_path, scenario):
 
 if __name__ == "__main__":
     arwys = ['WA33', 'MO26', 'LL25']
-    drwys = ['WA29']
+    drwys = ['WA29', 'MO26']
     #rwys = ['WA33', 'MO26', 'LL25']
     save_scenario('test_scenario.txt', generate_scenario('flights_epwa.json', 'config_wa33.json', arwys, drwys, departure_number=8))
     print('Generated a test scenario and saved it to test_scenario.txt.')

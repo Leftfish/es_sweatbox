@@ -26,13 +26,18 @@ def import_data(data_path):
     with open(data_path, 'r', encoding='utf-8') as data_file:
         return json.load(data_file)
 
-def generate_runways(runway_data):
+def generate_runways(runway_data, arrival_runways, departure_runways):
     '''Generates runway definitions for the scenario. Formula per ES docs.
     ILS<runway name>:<threshold latitude>:<threshold longitude>:<far end latitude>:<far end longitude>'''
 
+    simulated_runways = list(set(arrival_runways + [rwy_name for rwy_name, _ in departure_runways]))
+
     runways = []
     for runway_name, runway_info in runway_data.items():
-        runways.append(RUNWAY_TEMPLATE.format(runway_name,
+        if runway_name not in simulated_runways:
+            continue
+
+        runways.append(RUNWAY_TEMPLATE.format(runway_name[-2:],
                                               runway_info["lat1"],
                                               runway_info["lon1"],
                                               runway_info["lat2"],
@@ -397,7 +402,7 @@ def generate_scenario(flights_data_path,
     sim_data = import_data(simulation_data_path)
     flight_data = import_data(flights_data_path)
 
-    runways = generate_runways(sim_data['runway_data'])
+    runways = generate_runways(sim_data['runway_data'], arrival_runways, departure_runways)
     holdings = generate_holdings(sim_data['holding_data'])
     controllers = generate_controllers(sim_data['controller_data'], sim_data['pseudopilot_data'])
 
@@ -440,7 +445,9 @@ def save_scenario(output_path, scenario):
         scenario_file.write(scenario)
 
 if __name__ == "__main__":
-    arr_rwys = ['WA33', 'MO26', 'LL25']
-    dep_rwys = [('WA29', 10), ('MO26', 2), ('LL25', 2)]
+    #arr_rwys = ['WA33', 'MO26', 'LL25']
+    #dep_rwys = [('WA29', 10), ('MO26', 2), ('LL25', 2)]
+    arr_rwys = ['WA11', 'MO08', 'LL07']
+    dep_rwys = [('WA15', 10), ('MO08', 2), ('LL07', 2)]
     save_scenario('test_scenario.txt', generate_scenario('flights_epwa.json', 'config_epwa.json', arr_rwys, dep_rwys))
     print('Generated a test scenario and saved it to test_scenario.txt.')

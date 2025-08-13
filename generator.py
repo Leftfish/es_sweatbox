@@ -340,10 +340,10 @@ def generate_flights_in_waves(runway, sim_data, flight_data, squawk_generator,
         if start >= last_wave or plane_count >= capacity:
             break
         wave_interval = wave_interval + random.choice([-1, 0, 1])
-        print(f'Break beteen waves: {wave_interval} minutes.')
+        print(f'Break between waves: {wave_interval} minutes.')
         start += wave_interval
 
-    print(f'{plane_count} arriving planes generated in {wave_num} waves.')
+    print(f'{plane_count} arriving planes to {FIR_PREFIX+runway[:2]} generated in {wave_num} waves.')
     return all_planes
 
 def generate_squawk():
@@ -380,7 +380,7 @@ def generate_departures_string(n, runway, flight_data, sim_data, squawk_generato
                                                     requested_altitude_departures=sim_data['requested_altitude_departures'])
         departures_string += '\n'
         print(f"Added flight {flight['callsign']} as departure to fix {exit_fix}.")
-    print(f'Generated {n} departures from runway {runway}.')
+    print(f'Generated {n} departures from {FIR_PREFIX+runway[:2]} runway {runway[2:]}.')
     return departures_string
 
 def generate_scenario(flights_data_path,
@@ -438,7 +438,7 @@ def save_scenario(output_path, scenario):
         scenario_file.write(scenario)
 
 if __name__ == "__main__":
-    arwys = ['WA33', 'MO26']
+    arwys = ['WA33', 'MO26', 'LL25']
     drwys = ['WA29']
     #rwys = ['WA33', 'MO26', 'LL25']
     save_scenario('test_scenario.txt', generate_scenario('flights_epwa.json', 'config_wa33.json', arwys, drwys, departure_number=8))

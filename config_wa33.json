@@ -297,7 +297,46 @@
             "BAMSO": "WA901 WA931 WA932 WA791 BITWA WA571",
             "XIMBA": "WA901 WA921 EVDEX XENOM TISTA",
             "LOLSI": "WA901 WA902 WA903 MAKUS"
+        },
+        "WA15": {
+            "EVINA": "WA401 WA402 NITKI NIPUS",
+            "SOXER": "WA401 WA402 GILAL",
+            "OLILA": "WA401 WA404 DOPOX TISEX INSON",
+            "BAMSO": "WA401 WA404 WA657 WA611",
+            "XIMBA": "WA401 WA403",
+            "LOLSI": "WA401 WA402 GILAL"
+        },
+        "MO26":{
+            "BAMSO": "MO824 MO826 MO827 MO828 MO859",
+            "EVINA": "MO824 MO826 MO827 MO828 MO859 MO818 NITKI NIPUS",
+            "LOLSI": "MO824 MO826 MO827 MO828 MO859 MO818 MO861 GILAL",
+            "OLILA": "MO824 MO826 MO829",
+            "SOXER": "MO824 MO826 MO827 MO828 MO859 MO818 MO861 GILAL",
+            "XIMBA": "MO824 MO826 MO827 MO828 MO859 MO818 WA656"
+        },
+        "MO08":{
+            "BAMSO": "MO866 MO827 MO828 MO859",
+            "EVINA": "MO866 MO827 MO828 MO859 MO818 NITKI NIPUS",
+            "LOLSI": "MO866 MO827 MO828 MO859 MO818 MO861 GILAL",
+            "OLILA": "MO866 MO827",
+            "SOXER": "MO866 MO827 MO828 MO859 MO818 MO861 GILAL",
+            "XIMBA": "MO866 MO827 MO828 MO859 MO818 WA656"
+        },
+        "LL25":{
+            "ADOXO": "LL601 LL602 LL536 LL604",
+            "AGAVA": "LL601 LL602 LL606 LL608 LL618",
+            "BAXIS": "LL601 LL603",
+            "UTOLU": "LL601 LL603",
+            "VIDEV": "LL601 LL602 LL606 LL608 LL628"
+        },
+        "LL07":{
+            "ADOXO": "LL801 LL802",
+            "AGAVA": "LL801 LL804",
+            "BAXIS": "LL801 LL802 LL803",
+            "UTOLU": "LL801 LL802 LL803",
+            "VIDEV": "LL801 LL804"
         }
+
     },
     "maximum_departures": {
         "WA29": 8,

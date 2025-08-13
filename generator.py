@@ -362,11 +362,12 @@ def generate_departures_string(n, runway, flight_data, sim_data, squawk_generato
 
     departures_string = ''
     spawns = generate_departure_spawns(*sim_data['departures_first_spawn'][runway], *sim_data['departures_spawn_offset'][runway])
-    departures = random.sample(flight_data['departures'], n)
+    desired_destination = FIR_PREFIX + runway[:2]
+    departures_to_target = [flight for flight in flight_data['departures'] if flight['origin_airport'] == desired_destination]
+    departures = random.sample(departures_to_target, n)
     departure_sid_waypoints = sim_data['departures_sid_waypoints']
+
     for flight in departures:
-        if not FIR_PREFIX + runway[:2] == flight['origin_airport']:
-            continue
         spawn = next(spawns)
         squawk = next(squawk_generator)
         exit_fix = flight['fpl_route'].split()[0]
@@ -390,8 +391,7 @@ def generate_scenario(flights_data_path,
                       arrival_runways,
                       departure_runways,
                       start = DEFAULT_WAVE_START,
-                      last_wave = DEFAULT_LAST_WAVE,
-                      departure_number = 0):
+                      last_wave = DEFAULT_LAST_WAVE):
     '''Generates a Euroscope sweatbox scenario with arrivals and departures.'''
 
     sim_data = import_data(simulation_data_path)
@@ -419,7 +419,7 @@ def generate_scenario(flights_data_path,
                                               max_size=sim_data['arrivals_wave_maximum'][runway])
     all_flights += arrivals
 
-    for runway in departure_runways:
+    for runway, departure_number in departure_runways:
         all_flights += generate_departures_string(departure_number,
                                                   runway,
                                                   flight_data,
@@ -440,8 +440,7 @@ def save_scenario(output_path, scenario):
         scenario_file.write(scenario)
 
 if __name__ == "__main__":
-    arwys = ['WA33', 'MO26', 'LL25']
-    drwys = ['WA29', 'MO26']
-    #rwys = ['WA33', 'MO26', 'LL25']
-    save_scenario('test_scenario.txt', generate_scenario('flights_epwa.json', 'config_wa33.json', arwys, drwys, departure_number=8))
+    arr_rwys = ['WA33', 'MO26', 'LL25']
+    dep_rwys = [('WA29', 10), ('MO26', 2), ('LL25', 2)]
+    save_scenario('test_scenario.txt', generate_scenario('flights_epwa.json', 'config_epwa.json', arr_rwys, dep_rwys))
     print('Generated a test scenario and saved it to test_scenario.txt.')

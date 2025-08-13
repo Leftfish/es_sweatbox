@@ -438,7 +438,7 @@ def save_scenario(output_path, scenario):
         scenario_file.write(scenario)
 
 if __name__ == "__main__":
-    arwys = ['WA33']
+    arwys = ['WA33', 'MO26']
     drwys = ['WA29']
     #rwys = ['WA33', 'MO26', 'LL25']
     save_scenario('test_scenario.txt', generate_scenario('flights_epwa.json', 'config_wa33.json', arwys, drwys, departure_number=8))

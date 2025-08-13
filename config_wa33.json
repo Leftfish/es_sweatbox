@@ -8,32 +8,56 @@
             "lon1": "20.9837584",
             "lat2": "52.1714197",
             "lon2": "20.9469761",
-            "heading": "288.0",
-            "heading_holding_pt": "198.0"
+            "heading": "288.0"
         },
         "WA33": {
             "lat1": "52.1495910",
             "lon1": "20.9814126",
             "lat2": "52.1784955",
             "lon2": "20.9559491",
-            "heading": "326.0",
-            "heading_holding_pt": "236.0"
+            "heading": "326.0"
+        },
+        "WA15": {
+            "lat1": "52.1784955",
+            "lon1": "20.9559491",
+            "lat2": "52.1495910",
+            "lon2": "20.9814126",
+            "heading": "146.0"
+        },
+        "WA11": {
+            "lat1": "52.1714197",
+            "lon1": "20.9469761",
+            "lat2": "52.1611018",
+            "lon2": "20.9837584",
+            "heading": "108.0"
         },
         "MO26": {
             "lat1": "52.4529077",
             "lon1": "20.6697338",
             "lat2": "52.4495399",
             "lon2": "20.6339789",
-            "heading": "256.0",
-            "heading_holding_pt": "166.0"
+            "heading": "256.0"
+        },
+        "MO08": {
+            "lat1": "52.4495399",
+            "lon1": "20.6339789",
+            "lat2": "52.4529077",
+            "lon2": "20.6697338",
+            "heading": "76.0"
         },
         "LL25": {
             "lat1": "51.7236600",
             "lon1": "19.4058971",
             "lat2": "51.7163490",
             "lon2": "19.3727805",
-            "heading": "245.0",
-            "heading_holding_pt": "155.0"
+            "heading": "245.0"
+        },
+        "LL07": {
+            "lat1": "51.7163490",
+            "lon1": "19.3727805",
+            "lat2": "51.7236600",
+            "lon2": "19.4058971",
+            "heading": "65.0"
         }
     },
     "holding_data": [
@@ -144,6 +168,14 @@
             "52.3099272",
             "18.6787296"
         ],
+        "GOGUS": [
+            "51.3175000",
+            "19.5975000"
+        ],
+        "NUBLI": [
+            "51.2341670",
+            "19.9583335"
+        ],
         "ADOXO": [
             "52.2575223",
             "19.4280821"
@@ -151,6 +183,18 @@
         "VIDEV": [
             "51.1155873",
             "19.9857256"
+        ],
+        "SOXER": [
+            "52.5205473",
+            "22.5511594"
+        ],
+        "ABAKU": [
+            "51.5777780",
+            "18.5977780"
+        ],
+        "UTOLU": [
+            "51.9077786",
+            "18.5977780"
         ]
     },
     "arrivals_star_waypoints": {
@@ -161,6 +205,46 @@
             "BIMPA": "KEWLU MENCI REBSO SOFUZ ADINI SISLU LEMBU WA536 WA534 WA533 ERLEG WA529 WA501 ILS33",
             "NEPOX": "BUWAS ENZAM VAWKU SOFUZ ADINI SISLU LEMBU WA536 WA534 WA533 ERLEG WA529 WA501 ILS33",
             "LIMVI": "WA884 ENZAM VAWKU SOFUZ ADINI SISLU LEMBU WA536 WA534 WA533 ERLEG WA529 WA501 ILS33"
+        },
+        "WA11": {
+            "AGAVA": "VIXLO ARFEP EMCEL FOLFA SERFU FILOZ SOSIN BASEK LUGEL PIBAR WA413 WA412 WA411 GOSIT ILS11",
+            "LOGDA": "WA821 EMCEL FOLFA SERFU FILOZ SOSIN BASEK LUGEL PIBAR WA413 WA412 WA411 GOSIT ILS11",
+            "SORIX": "KEWLU INZUB PATFO UPKOF LUHSA REMDI AGESI TABET WA412 WA411 GOSIT ILS11",
+            "BIMPA": "KEWLU INZUB PATFO UPKOF LUHSA REMDI AGESI TABET WA412 WA411 GOSIT ILS11",
+            "NEPOX": "BUWAS ENZAM LUWSO NIMIS REMDI AGESI TABET WA412 WA411 GOSIT ILS11 WA412",
+            "LIMVI": "WA824 ENZAM LUWSO NIMIS REMDI AGESI TABET WA412 WA411 GOSIT ILS11 WA412"
+        },
+        "MO26": {
+            "DOSIX": "BIMPA KUXEN MO804 PAVZA IMWEG MO994 MO998 ILS26",
+            "GOGUS": "GIPOS FALNE ADOXO BIMPA KUXEN MO804 PAVZA IMWEG MO994 MO998 ILS26",
+            "LIMVI": "MO696 ENZAM ZIXNE MO842 AQALE MO994 MO998 ILS26",
+            "LOGDA": "KACBU MO696 ENZAM ZIXNE MO842 AQALE MO994 MO998 ILS26",
+            "NEPOX": "ENZAM ZIXNE MO842 AQALE MO994 MO998 ILS26",
+            "NUBLI": "GIPOS FALNE ADOXO BIMPA KUXEN MO804 PAVZA IMWEG MO994 MO998 ILS26",
+            "SORIX": "BIMPA KUXEN MO804 PAVZA IMWEG MO994 MO998 ILS26"
+        },
+        "MO08": {
+            "DOSIX": "BIMPA KUXEN OGRAR GODIL ILS08",
+            "GOGUS": "GIPOS FALNE ADOXO BIMPA KUXEN OGRAR GODIL ILS08",
+            "LIMVI": "MO696 ENZAM ZIXNE MO842 VECNU PAVZA MO804 MO803 KUXEN OGRAR GODIL ILS08",
+            "LOGDA": "KACBU MO696 ENZAM ZIXNE MO842 VECNU PAVZA MO804 MO803 KUXEN OGRAR GODIL ILS08",
+            "NEPOX": "ENZAM ZIXNE MO842 VECNU PAVZA MO804 MO803 KUXEN OGRAR GODIL ILS08",
+            "NUBLI": "GIPOS FALNE ADOXO BIMPA KUXEN OGRAR GODIL ILS08",
+            "SORIX": "BIMPA KUXEN OGRAR GODIL ILS08"
+        },
+        "LL25": {
+            "ABAKU": "LL528 LL527 LL522 LL501 LL531 LL532 ILS25",
+            "ADOXO": "LL524 LL522 LL501 LL531 LL532 ILS25",
+            "SOXER": "LL523 LL522 LL501 LL531 LL532 ILS25",
+            "UTOLU": "LL536 LL526 LL524 LL522 LL501 LL531 LL532 ILS25",
+            "VIDEV": "LL527 LL522 LL501 LL531 LL532 ILS25"
+        },
+        "LL08": {
+            "ABAKU": "LL706 LL702 LL701 LL711 LL721 LL731 ILS07",
+            "ADOXO": "LL712 LL702 LL701 LL711 LL721 LL731 ILS07",
+            "SOXER": "LL712 LL702 LL701 LL711 LL721 LL731 ILS07",
+            "UTOLU": "LL704 LL703 LL702 LL701 LL711 LL721 LL731 ILS07",
+            "VIDEV": "LL713 LL501 LL712 LL702 LL701 LL711 LL721 LL731 ILS07"
         }
     },
     "arrivals_fix_headings": {
@@ -169,7 +253,15 @@
             "SORIX": "123.0",
             "BIMPA": "77.0",
             "NEPOX": "320.0",
-            "LIMVI": "340.0"
+            "LIMVI": "340.0",
+            "GOGUS": "20.0",
+            "NUBLI": "330.0",
+            "DOSIX": "80.0",
+            "ADOXO": "160.0",
+            "SOXER": "195.0",
+            "UTOLU": "85.0",
+            "ABAKU": "80.0",
+            "VIDEV": "355.0"
     },
     "arrivals_max_capacity": {
         "WA33": 28,

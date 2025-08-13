@@ -1,5 +1,8 @@
+
+
 '''Functions for generating a scenario of departing and arriving flights.
-Uses JSON data about flights and TMA data.'''
+Uses JSON data about flights and TMA data. Tailored for approach training scenarios
+on Vatsim (S3 level)'''
 
 import json
 import random
@@ -435,11 +438,8 @@ def save_scenario(output_path, scenario):
         scenario_file.write(scenario)
 
 if __name__ == "__main__":
-    simulated_flights = 'flights_epwa.json'
-    config = 'config_wa33.json'
-    output = 'test_scenario.txt'
     arwys = ['WA33']
     drwys = ['WA29']
     #rwys = ['WA33', 'MO26', 'LL25']
-    save_scenario(output, generate_scenario(simulated_flights, config, arwys, drwys, departure_number=8))
-    print(f'Generated a test scenario and saved it to {output}.')
+    save_scenario('test_scenario.txt', generate_scenario('flights_epwa.json', 'config_wa33.json', arwys, drwys, departure_number=8))
+    print('Generated a test scenario and saved it to test_scenario.txt.')

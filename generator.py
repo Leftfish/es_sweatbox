@@ -2,8 +2,10 @@
 Uses JSON data about flights and TMA data. Tailored for approach training scenarios
 on Vatsim (S3 level)'''
 
+import argparse
 import json
 import random
+import itertools
 
 from defaults import MINIMUM_ARRIVAL_ALTITUDE, DEFAULT_SPAWN, DEFAULT_TAXI_SPEED, \
                      DEFAULT_TAXIWAY_USAGE, DEFAULT_OBJECT_EXTENT, \
@@ -74,12 +76,13 @@ def transform_heading(initial_heading):
 
 def get_spawn_coordinates(flight_data, arrival_spawns):
     '''Reads the flight data and determines the spawn coordinates.'''
-
-    if not flight_data['latitude'] or not flight_data['longitude']:
+    latitude = flight_data.get('latitude', None)
+    longitude = flight_data.get('longitude', None)
+    if not latitude or not longitude:
         tma_boundary = flight_data['fpl_route'].split()[-1]  # last wpt is the TMA boundary
         spawn_latitude, spawn_longitude = arrival_spawns.get(tma_boundary, DEFAULT_SPAWN)
     else:
-        spawn_latitude, spawn_longitude = flight_data['latitude'], flight_data['longitude']
+        spawn_latitude, spawn_longitude = latitude, longitude
     return spawn_latitude, spawn_longitude
 
 def generate_inbound_spawn(flight_data, arrival_spawns):
@@ -441,3 +444,10 @@ def save_scenario(output_path, scenario):
 
     with open(output_path, 'w', encoding='utf-8') as scenario_file:
         scenario_file.write(scenario)
+
+if __name__ == "__main__":
+    print("Generating a test scenario...")
+    saved_scenario_path = 'test_scenario.txt'
+    flights_path = 'data\\EPWA_flights.json'
+    config_path = 'data\\EPWA_config.json'
+    save_scenario(saved_scenario_path, generate_scenario(flights_path, config_path, arrival_runways=['WA33', 'MO26'], departure_runways=[('WA29', 10), ('MO26', 3)]))

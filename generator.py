@@ -444,10 +444,3 @@ def save_scenario(output_path, scenario):
 
     with open(output_path, 'w', encoding='utf-8') as scenario_file:
         scenario_file.write(scenario)
-
-if __name__ == "__main__":
-    print("Generating a test scenario...")
-    saved_scenario_path = 'test_scenario_EPWA_TMA.txt'
-    flights_path = 'data\\EPWA_flights.json'
-    config_path = 'data\\EPWA_config.json'
-    save_scenario(saved_scenario_path, generate_scenario(flights_path, config_path, arrival_runways=['WA33', 'MO26'], departure_runways=[('WA29', 10), ('MO26', 3)]))

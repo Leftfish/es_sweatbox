@@ -14,7 +14,7 @@ To run the CLI version, use the `run_cli.py` script:
 ##### Command-Line Arguments
 - `TMA` (required): TMA name, e.g., `EPWA`.
 - `-arr` (required): List of arrival runways, e.g., `WA33 MO26 LL25`.
-- `-dep` (required): List of departure runways followed by the number of departures, e.g., `WA33 10 MO26 3`.
+- `-dep` (required): List of departure runways followed by the number of departures, e.g., `WA29 10 MO26 3`.
 - `-output_path` (optional): Path to the output text file for the scenario. Defaults to `test_scenario.txt` if not provided.
 
 ##### Example Command
@@ -22,7 +22,7 @@ To run the CLI version, use the `run_cli.py` script:
 python run_cli.py -output_path scenario.txt EPWA -arr WA33 MO26 LL25 -dep WA29 10 MO26 3
 ```
 
-This command generates a scenario for the EPWA TMA with arrivals on runways EPWA (33), EPMO (26) and EPLL (25), and departures from WA33 (10 departures) and MO26 (3 departures). The output is saved to `scenario.txt`.
+This command generates a scenario for the EPWA TMA with arrivals on runways EPWA (33), EPMO (26) and EPLL (25), as well as 10 departures from EPWA (29) and 3 departures from EPMO (26). The output is saved to `scenario.txt`.
 
 #### Graphical User Interface (GUI)
 To run the GUI version, use the `run_gui.py` script:

@@ -15,8 +15,8 @@ DEFAULT_TAXI_SPEED = '20'
 DEFAULT_TAXIWAY_USAGE = '1'
 DEFAULT_OBJECT_EXTENT = '0.010'
 
-DEFAULT_WAVE_START = 0
-DEFAULT_LAST_WAVE = 30
+DEFAULT_WAVE_START = 0 # minutes
+DEFAULT_LAST_WAVE = 30 # minutes
 
 EXCEPTION_MSG_SID_OR_STAR = "Either SID or STAR waypoints must be provided for each flight."
 EXCEPTION_MSG_SID_AND_STAR = "Only one of SID or STAR waypoints should be provided for each flight."

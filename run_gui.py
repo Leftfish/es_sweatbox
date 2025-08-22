@@ -35,10 +35,10 @@ def run_generator():
     arrivals_list = arrivals.split()
     departures_list = departures.split()
 
-    generator_path = os.path.join(os.path.dirname(__file__), "generator.py")
+    generator_path = os.path.join(os.path.dirname(__file__), "run_cli.py")
 
     try:
-        command = ["python", generator_path, "-output_path", output_path, tma, "-arr"] + arrivals_list + ["-dep"] + departures_list
+        command = ["python", generator_path, tma, "-output_path", output_path, "-arr"] + arrivals_list + ["-dep"] + departures_list
         subprocess.run(command, check=True, cwd=os.path.dirname(generator_path))  # Set the working directory
         messagebox.showinfo("Success", f"Scenario generated and saved to {output_path}.")
     except subprocess.CalledProcessError as e:

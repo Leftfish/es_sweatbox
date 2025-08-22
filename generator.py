@@ -2,10 +2,8 @@
 Uses JSON data about flights and TMA data. Tailored for approach training scenarios
 on Vatsim (S3 level)'''
 
-import argparse
 import json
 import random
-import itertools
 
 from defaults import MINIMUM_ARRIVAL_ALTITUDE, DEFAULT_SPAWN, DEFAULT_TAXI_SPEED, \
                      DEFAULT_TAXIWAY_USAGE, DEFAULT_OBJECT_EXTENT, \
@@ -443,35 +441,3 @@ def save_scenario(output_path, scenario):
 
     with open(output_path, 'w', encoding='utf-8') as scenario_file:
         scenario_file.write(scenario)
-
-if __name__ == "__main__":
-    arg_parser = argparse.ArgumentParser(description='Generates a Euroscope sweatbox scenario with arrivals and departures.')
-    arg_parser.add_argument('-output_path', type=str, help='Path to the output text file for the scenario.')
-    arg_parser.add_argument('TMA', type=str, help='TMA name, eg. EPWA.')
-    arg_parser.add_argument('-arr', nargs='+', help='List of arrival runways, eg. WA33, MO26, LL25.')
-    arg_parser.add_argument('-dep', nargs='+', help='List of departure runways followed by <number of departures>, eg. WA33 10.')
-    args = arg_parser.parse_args()
-
-    config_path = f'data//{args.TMA}_config.json'
-    flights_path = f'data//{args.TMA}_flights.json'
-
-    try:
-        import_data(config_path)  # just to check if the file exists
-        saved_scenario_path = args.output_path
-
-        if not args.arr:
-            raise ValueError('At least one arrival runway must be specified with -arr.')
-        if not args.dep:
-            raise ValueError('At least one departure runway must be specified with -dep.')
-        if not saved_scenario_path:
-            saved_scenario_path = 'test_scenario.txt'
-
-        batched_departures = [(rwy, int(n)) for rwy, n in itertools.batched(args.dep, 2)]
-        save_scenario(saved_scenario_path, generate_scenario(flights_path, config_path, args.arr, batched_departures))
-
-    except FileNotFoundError:
-        print(f'{args.TMA} TMA not found. Ensure the config and flights JSON files are in the data folder. The format is <TMA>_<type>.json')
-    except ValueError as ve:
-        print(f'Error: {ve}')
-    except KeyError as ke:
-        print(f'Error: Missing runway designation {ke} in the JSON data files. Scenario was not saved.')

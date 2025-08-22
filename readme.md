@@ -5,18 +5,30 @@ This script generates a Euroscope sweatbox scenario with arrivals and departures
 
 ### Usage
 
-#### Command-Line Arguments
+#### Command-Line Interface (CLI)
+To run the CLI version, use the `run_cli.py` script:
+
+##### Command-Line Arguments
 - `-output_path` (optional): Path to the output text file for the scenario. Defaults to `test_scenario.txt` if not provided.
 - `TMA` (required): TMA name, e.g., `EPWA`.
 - `-arr` (required): List of arrival runways, e.g., `WA33 MO26 LL25`.
 - `-dep` (required): List of departure runways followed by the number of departures, e.g., `WA33 10 MO26 5`.
 
-#### Example Command
+##### Example Command
 ```bash
-python generator.py -output_path scenario.txt EPWA -arr WA33 MO26 -dep WA33 10 MO26 5
+python run_cli.py -output_path scenario.txt EPWA -arr WA33 MO26 -dep WA33 10 MO26 5
 ```
 
 This command generates a scenario for the EPWA TMA with arrivals on runways WA33 and MO26, and departures from WA33 (10 departures) and MO26 (5 departures). The output is saved to `scenario.txt`.
+
+#### Graphical User Interface (GUI)
+To run the GUI version, use the `run_gui.py` script:
+
+```bash
+python run_gui.py
+```
+
+The GUI provides a simple interface to input parameters and generate scenarios without using the command line.
 
 ### Requirements
 Requires Python 3.12 or higher.

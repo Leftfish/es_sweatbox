@@ -1,7 +1,15 @@
+'''Simple GUI for the ES scenario generator.'''
+
 import tkinter as tk
 from tkinter import filedialog, messagebox
 import subprocess
 import os
+
+def select_output_file():
+    file_path = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt"), ("All files", "*.*")])
+    if file_path:
+        output_path_entry.delete(0, tk.END)
+        output_path_entry.insert(0, file_path)
 
 def run_generator():
     tma = tma_entry.get()
@@ -28,9 +36,6 @@ def run_generator():
     departures_list = departures.split()
 
     generator_path = os.path.join(os.path.dirname(__file__), "generator.py")
-
-    # Update paths for config and flights to locate them in the same directory
-    data_dir = os.path.join(os.path.dirname(__file__), "data")
 
     try:
         command = ["python", generator_path, "-output_path", output_path, tma, "-arr"] + arrivals_list + ["-dep"] + departures_list
@@ -62,10 +67,12 @@ departures_entry.grid(row=2, column=1, padx=5, pady=5)
 tk.Label(root, text="Output Path (optional):").grid(row=3, column=0, sticky="w")
 output_path_entry = tk.Entry(root, width=30)
 output_path_entry.grid(row=3, column=1, padx=5, pady=5)
+output_path_button = tk.Button(root, text="Browse...", command=select_output_file)
+output_path_button.grid(row=3, column=2, padx=5, pady=5)
 
 # Generate Button
 generate_button = tk.Button(root, text="Generate Scenario", command=run_generator)
-generate_button.grid(row=4, column=0, columnspan=2, pady=10)
+generate_button.grid(row=4, column=0, columnspan=3, pady=10)
 
 # Run the application
 root.mainloop()

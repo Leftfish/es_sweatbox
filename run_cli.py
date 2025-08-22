@@ -1,6 +1,8 @@
+'''Simple command-line interface for the ES scenario generator.'''
+
 import argparse
 import itertools
-from generator import import_data, save_scenario, generate_scenario
+from generator import save_scenario, generate_scenario
 
 def main():
     arg_parser = argparse.ArgumentParser(description='Generates a Euroscope sweatbox scenario with arrivals and departures.')
